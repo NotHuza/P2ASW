@@ -17,11 +17,15 @@
 		{
 			"Game"	"|gameinfo_path|."
 			// Portal 2 code mounts this, but it isn't used by Valve
-			"Game"	"../Portal 2/xlsppatch"
-			"Game"	"../Portal 2/update"
-			"Game"	"../Portal 2/portal2_dlc2"
-			"Game"	"../Portal 2/portal2_dlc1"
-			"Game"	"../Portal 2/portal2"
+			//"Game"	"../Portal 2/xlsppatch"
+			 "Game"	"|gameinfo_path|."
+			"Game"	"E:\SteamLibrary\steamapps\common\Portal 2\portal2"
+			"Game"	"E:\SteamLibrary\steamapps\common\Portal 2\portal2_dlc1"
+			"Game"	"E:\SteamLibrary\steamapps\common\Portal 2\portal2_dlc2"
+			"Game"	"E:\SteamLibrary\steamapps\common\Portal 2\update"
+		
+			
+			
 			"Game"	"platform"
 		}
 	}

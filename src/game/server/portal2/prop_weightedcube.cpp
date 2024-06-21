@@ -23,6 +23,10 @@
 #include "trigger_portal_cleanser.h"
 #include "portal_mp_gamerules.h"
 #include "cvisibilitymonitor.h"
+#include "mathlib/vector.h"
+#include "mathlib/mathlib.h"
+#include "util_shared.h"
+#include "baseentity.h"
 
 ConVar reflector_cube_disabled_think_rate( "reflector_cube_disabled_think_rate", "0.1f", FCVAR_DEVELOPMENTONLY, "The rate at which the cube should think when it is disabled." );
 ConVar reflector_cube_disabled_nudge_time( "reflector_cube_disabled_nudge_time", "0.5f", FCVAR_DEVELOPMENTONLY, "The amount of time the cube needs to be touched before it gets enabled again." );
@@ -32,6 +36,9 @@ ConVar sv_portal2_pickup_hint_range( "sv_portal2_pickup_hint_range", "350.0", FC
 
 // FIXME: Bring this back for DLC2
 //extern ConVar sv_schrodinger_laser_world_aligned;
+
+ConVar sv_schrodinger_laser_world_aligned("sv_schrodinger_laser_world_aligned", "0", FCVAR_ARCHIVE);//?
+
 
 //Standard cube skins
 enum StandardCubeSkinType_t
@@ -522,11 +529,39 @@ void CPropWeightedCube::ConvertOldSkins( void )
 //-----------------------------------------------------------------------------
 void CPropWeightedCube::SetCubeType( void )
 {
-	// FIXME: Remove for DLC2
-	if ( m_nCubeType == CUBE_SCHRODINGER )
+	// FIXME:  laser not folows cube orentacion
+	if (m_nCubeType == CUBE_SCHRODINGER)
 	{
-	 	m_nCubeType = CUBE_REFLECTIVE;
+		SetModelName(MAKE_STRING(CUBE_SCHRODINGER_MODEL));
+		m_pController = CCubeRotationController::CreateRotationController(this);
+		AddSpawnFlags(SF_PHYSPROP_ENABLE_ON_PHYSCANNON);
+
+		if (m_hSchrodingerDangling.Get() == NULL)
+		{
+			m_hSchrodingerDangling = this;//act as normal laser cube only if there is one cube
+		}
+		else
+		{
+			// Link the current cube with its dangling counterpart
+			m_hSchrodingerDangling->m_hSchrodingerTwin = this;
+			m_hSchrodingerTwin = m_hSchrodingerDangling;
+
+			// Compute and set the rotation controller alignment for both cubes
+			QAngle qAngles = GetAbsAngles();
+			Vector vecForward;
+			AngleVectors(qAngles, &vecForward);
+			m_pController->SetAlignmentVector(vecForward);
+
+			QAngle twinAngles = m_hSchrodingerTwin->GetAbsAngles();
+			Vector twinForward;
+			AngleVectors(twinAngles, &twinForward);
+			m_hSchrodingerTwin->m_pController->SetAlignmentVector(twinForward);
+
+			// Clear the dangling cube reference
+			m_hSchrodingerDangling = NULL;
+		}
 	}
+
 	
 	switch( m_nCubeType )
 	{
@@ -561,8 +596,8 @@ void CPropWeightedCube::SetCubeType( void )
 			break;
 		}
 
-		//Schrodinger cube
-		case CUBE_SCHRODINGER:
+		//Schrodinger cube orginall code
+		/*case CUBE_SCHRODINGER:
 		{
 			SetModelName( MAKE_STRING( CUBE_SCHRODINGER_MODEL ) );
 			m_pController = CCubeRotationController::CreateRotationController( this );
@@ -579,7 +614,7 @@ void CPropWeightedCube::SetCubeType( void )
 				m_hSchrodingerDangling = NULL;
 			}
 			break;
-		}
+		}*/
 	}
 
 	SetCubeSkin();
@@ -1573,7 +1608,10 @@ static ConCommand ent_create_portal_companion_cube("ent_create_portal_companion_
 static ConCommand ent_create_portal_weighted_cube("ent_create_portal_weighted_cube", CC_Create_PortalWeightedCube, "Creates a standard cube where the player is looking.", FCVAR_GAMEDLL | FCVAR_CHEAT);
 static ConCommand ent_create_portal_weighted_sphere("ent_create_portal_weighted_sphere", CC_Create_PortalWeightedSphere, "Creates a weighted sphere where the player is looking.", FCVAR_GAMEDLL | FCVAR_CHEAT);
 static ConCommand ent_create_portal_weighted_antique("ent_create_portal_weighted_antique", CC_Create_PortalWeightedAntique, "Creates an antique cube where the player is looking.", FCVAR_GAMEDLL | FCVAR_CHEAT);
-// FIXME: Bring this back for DLC2
-//static ConCommand ent_create_portal_weighted_schrodinger("ent_create_portal_weighted_schrodinger", CC_Create_PortalWeightedSchrodinger, "Creates an Schrodinger cube where the player is looking.", FCVAR_GAMEDLL | FCVAR_CHEAT);
+static ConCommand ent_create_portal_weighted_schrodinger("ent_create_portal_weighted_schrodinger", CC_Create_PortalWeightedSchrodinger, "Creates a Schrodinger cube where the player is looking.", FCVAR_GAMEDLL | FCVAR_CHEAT);
+
+//static ConCommand ent_create_portal_weighted_schrodinger("ent_create_portal_weighted_schrodinger", CC_Create_PortalWeightedSchrodinger, "Creates an Schrodinger cube where the player is looking.", FCVAR_GAMEDLL | FCVAR_CHEAT);// brind back cube in future use reflect cube model and give me only stuff what u add.
 
 #endif // CLIENT_DLL
+
+
